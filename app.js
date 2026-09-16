@@ -303,7 +303,16 @@ function initKeuanganPage() {
 
   const amountInput = document.getElementById('inputTxAmount');
   if (amountInput) {
-    amountInput.addEventListener('wheel', (e) => e.preventDefault());
+    amountInput.addEventListener('input', (e) => {
+      // Hilangkan karakter selain angka
+      const raw = e.target.value.replace(/\D/g, '');
+      if (raw) {
+        // Tampilkan format ribuan dengan titik (contoh: 12.000, 1.500.000)
+        e.target.value = parseInt(raw, 10).toLocaleString('id-ID');
+      } else {
+        e.target.value = '';
+      }
+    });
   }
 }
 
@@ -329,7 +338,11 @@ function handleAddTransaction() {
   const date = document.getElementById('inputTxDate').value;
   const category = document.getElementById('inputTxCategory').value;
   const desc = document.getElementById('inputTxDesc').value.trim();
-  const amount = parseFloat(document.getElementById('inputTxAmount').value);
+  const rawAmount = document.getElementById('inputTxAmount').value.trim();
+  
+  // Ambil hanya angka murni dari input (menghapus titik ribuan maupun spasi)
+  const cleanDigits = rawAmount.replace(/\D/g, '');
+  const amount = parseInt(cleanDigits, 10);
 
   if (!date) {
     showToastNotification('Harap pilih tanggal transaksi.');
