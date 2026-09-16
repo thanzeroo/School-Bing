@@ -674,6 +674,18 @@ svg { display: block; flex-shrink: 0; }
   border-color: var(--text);
 }
 
+/* Hilangkan tombol panah stepper (+1, +2, dll) pada input angka */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .btn-primary {
   display: inline-flex;
   align-items: center;

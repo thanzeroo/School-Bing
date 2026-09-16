@@ -300,6 +300,11 @@ function initKeuanganPage() {
   initMonthFilter();
   updateSummaryCards();
   renderTransactionsList();
+
+  const amountInput = document.getElementById('inputTxAmount');
+  if (amountInput) {
+    amountInput.addEventListener('wheel', (e) => e.preventDefault());
+  }
 }
 
 function setDefaultDateInput() {
