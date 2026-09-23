@@ -530,13 +530,528 @@ function showToastNotification(msg) {
   }, 2500);
 }
 
+/* ===== 6.5. LOGIKA HALAMAN DASHBOARD ===== */
+const CATEGORY_COLORS = [
+  '#2563eb', // blue
+  '#059669', // emerald
+  '#d97706', // amber
+  '#dc2626', // red
+  '#7c3aed', // purple
+  '#0891b2', // cyan
+  '#ea580c', // orange
+  '#db2777', // pink
+  '#4b5563', // gray
+  '#65a30d'  // lime
+];
+
+function initDashboardPage() {
+  updateDashboardGreetingAndDate();
+  const metrics = updateDashboardStats();
+  renderCashflowChart(metrics.income, metrics.expense);
+  renderCategoryBreakdown(appState.transactions);
+  renderDashboardLearningProgress();
+  renderDashboardRecentTx();
+  renderDashboardInsight(metrics.income, metrics.expense, metrics.topCategory, metrics.savingsRate);
+}
+
+function updateDashboardGreetingAndDate() {
+  const greetingEl = document.getElementById('dashGreeting');
+  const dateStrEl = document.getElementById('currentDateStr');
+  const now = new Date();
+
+  // Waktu & Salam Dinamis
+  const hour = now.getHours();
+  let salam = 'Selamat Datang';
+  if (hour >= 4 && hour < 11) salam = 'Selamat Pagi 🌅';
+  else if (hour >= 11 && hour < 15) salam = 'Selamat Siang ☀️';
+  else if (hour >= 15 && hour < 18) salam = 'Selamat Sore 🌇';
+  else salam = 'Selamat Malam 🌙';
+
+  if (greetingEl) {
+    greetingEl.textContent = `${salam}, di FinLearn`;
+  }
+
+  // Format Tanggal Indonesia
+  if (dateStrEl) {
+    const formattedDate = now.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+    dateStrEl.textContent = formattedDate;
+  }
+}
+
+function updateDashboardStats() {
+  const income = appState.transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const expense = appState.transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const balance = income - expense;
+  const savingsRate = income > 0 ? Math.round(((income - expense) / income) * 100) : 0;
+
+  const incomeTxCount = appState.transactions.filter(t => t.type === 'income').length;
+  const expenseTxCount = appState.transactions.filter(t => t.type === 'expense').length;
+
+  // Elemen Nilai
+  const balEl = document.getElementById('dashStatBalance');
+  const incEl = document.getElementById('dashStatIncome');
+  const expEl = document.getElementById('dashStatExpense');
+  const savEl = document.getElementById('dashStatSavings');
+
+  if (balEl) balEl.textContent = (balance < 0 ? '− ' : '') + formatRupiah(balance);
+  if (incEl) incEl.textContent = formatRupiah(income);
+  if (expEl) expEl.textContent = formatRupiah(expense);
+  if (savEl) savEl.textContent = (savingsRate < 0 ? '0%' : `${savingsRate}%`);
+
+  // Subteks
+  const balSub = document.getElementById('dashStatBalanceSub');
+  const incSub = document.getElementById('dashStatIncomeCount');
+  const expSub = document.getElementById('dashStatExpenseCount');
+  const savSub = document.getElementById('dashStatSavingsSub');
+
+  if (incSub) incSub.textContent = `${incomeTxCount} transaksi pemasukan`;
+  if (expSub) expSub.textContent = `${expenseTxCount} transaksi pengeluaran`;
+
+  if (balSub) {
+    if (balance > 0) balSub.textContent = 'Arus kas positif & surplus';
+    else if (balance < 0) balSub.textContent = 'Defisit, pengeluaran melebihi pemasukan';
+    else balSub.textContent = 'Saldo seimbang / belum ada transaksi';
+  }
+
+  if (savSub) {
+    if (savingsRate >= 20) savSub.textContent = '✅ Melebihi target 50/30/20 (min. 20%)';
+    else if (savingsRate > 0) savSub.textContent = '⚠️ Belum capai target ideal 20%';
+    else savSub.textContent = 'Target ideal: min. 20% dari income';
+  }
+
+  // Health Status Chip
+  const healthChip = document.getElementById('healthChip');
+  const healthChipText = document.getElementById('healthChipText');
+  if (healthChip && healthChipText) {
+    healthChip.classList.remove('status-good', 'status-warning', 'status-danger');
+    if (appState.transactions.length === 0) {
+      healthChip.classList.add('status-warning');
+      healthChipText.textContent = 'Data Baru Dimulai';
+    } else if (balance < 0) {
+      healthChip.classList.add('status-danger');
+      healthChipText.textContent = 'Defisit Finansial';
+    } else if (savingsRate >= 20) {
+      healthChip.classList.add('status-good');
+      healthChipText.textContent = 'Keuangan Sangat Sehat';
+    } else {
+      healthChip.classList.add('status-warning');
+      healthChipText.textContent = 'Keuangan Stabil';
+    }
+  }
+
+  // Cari Top Kategori Pengeluaran
+  const expenseMap = {};
+  appState.transactions.filter(t => t.type === 'expense').forEach(t => {
+    expenseMap[t.category] = (expenseMap[t.category] || 0) + t.amount;
+  });
+  let topCategory = '-';
+  let topAmount = 0;
+  for (const [cat, amt] of Object.entries(expenseMap)) {
+    if (amt > topAmount) {
+      topAmount = amt;
+      topCategory = cat;
+    }
+  }
+
+  return { income, expense, balance, savingsRate, topCategory };
+}
+
+function renderCashflowChart(income, expense) {
+  const container = document.getElementById('cashflowChartContainer');
+  const statusBadge = document.getElementById('cashflowStatusBadge');
+  if (!container) return;
+
+  const total = income + expense;
+  if (statusBadge) {
+    if (income > expense) {
+      statusBadge.textContent = 'Net Surplus';
+      statusBadge.className = 'badge-pill pill-success';
+    } else if (expense > income) {
+      statusBadge.textContent = 'Net Defisit';
+      statusBadge.className = 'badge-pill pill-danger';
+    } else {
+      statusBadge.textContent = 'Net Netral';
+      statusBadge.className = 'badge-pill';
+    }
+  }
+
+  if (total === 0) {
+    container.innerHTML = `
+      <div class="chart-empty-state">
+        <p>Belum ada data pemasukan & pengeluaran untuk ditampilkan.</p>
+        <button class="btn-outline-sm" onclick="handleLoadSampleData()">Muat Data Demo</button>
+      </div>
+    `;
+    return;
+  }
+
+  const incomePct = Math.round((income / total) * 100);
+  const expensePct = Math.round((expense / total) * 100);
+  const netAmount = income - expense;
+
+  container.innerHTML = `
+    <div class="cashflow-visual-wrapper">
+      <!-- Comparative Progress Bar -->
+      <div class="cashflow-bar-track">
+        <div class="cashflow-bar-income" style="width: ${incomePct}%;" title="Pemasukan: ${incomePct}%"></div>
+        <div class="cashflow-bar-expense" style="width: ${expensePct}%;" title="Pengeluaran: ${expensePct}%"></div>
+      </div>
+
+      <!-- Detail Box Grid -->
+      <div class="cashflow-details-grid">
+        <div class="cashflow-col inc">
+          <div class="cf-badge-row">
+            <span class="cf-indicator inc"></span>
+            <span class="cf-label">Pemasukan</span>
+          </div>
+          <div class="cf-val inc">${formatRupiah(income)}</div>
+          <div class="cf-pct">${incomePct}% dari total aktivitas</div>
+        </div>
+
+        <div class="cashflow-col exp">
+          <div class="cf-badge-row">
+            <span class="cf-indicator exp"></span>
+            <span class="cf-label">Pengeluaran</span>
+          </div>
+          <div class="cf-val exp">${formatRupiah(expense)}</div>
+          <div class="cf-pct">${expensePct}% dari total aktivitas</div>
+        </div>
+      </div>
+
+      <!-- Net Result Callout -->
+      <div class="cashflow-net-card ${netAmount >= 0 ? 'net-positive' : 'net-negative'}">
+        <div class="net-left">
+          <span class="net-title">Selisih Kas Bersih:</span>
+          <strong>${netAmount >= 0 ? '+' : '−'} ${formatRupiah(netAmount)}</strong>
+        </div>
+        <div class="net-right">
+          ${netAmount >= 0 
+            ? '<span>🛡️ Arus kas surplus dan aman untuk ditabung.</span>' 
+            : '<span>⚠️ Pengeluaran melebihi pemasukan bulan ini.</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCategoryBreakdown(transactions) {
+  const container = document.getElementById('categoryBreakdownContainer');
+  const topBadge = document.getElementById('topCategoryBadge');
+  if (!container) return;
+
+  const expenses = transactions.filter(t => t.type === 'expense');
+  if (expenses.length === 0) {
+    if (topBadge) topBadge.textContent = 'Belum Ada';
+    container.innerHTML = `
+      <div class="chart-empty-state">
+        <p>Belum ada pengeluaran yang dicatat.</p>
+        <a href="keuangan.html" class="btn-outline-sm">+ Catat Pengeluaran</a>
+      </div>
+    `;
+    return;
+  }
+
+  const categoryMap = {};
+  let totalExpense = 0;
+
+  expenses.forEach(t => {
+    categoryMap[t.category] = (categoryMap[t.category] || 0) + t.amount;
+    totalExpense += t.amount;
+  });
+
+  const sortedCategories = Object.keys(categoryMap)
+    .map((name, idx) => ({
+      name,
+      amount: categoryMap[name],
+      pct: totalExpense > 0 ? (categoryMap[name] / totalExpense) * 100 : 0,
+      color: CATEGORY_COLORS[idx % CATEGORY_COLORS.length]
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  if (topBadge && sortedCategories.length > 0) {
+    topBadge.textContent = `Tertinggi: ${sortedCategories[0].name} (${Math.round(sortedCategories[0].pct)}%)`;
+  }
+
+  // Hitung Donut Segments SVG
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius; // ~238.76
+  let currentOffset = 0;
+
+  const svgCircles = sortedCategories.map(cat => {
+    const dashLength = (cat.pct / 100) * circumference;
+    const circle = `
+      <circle
+        cx="50" cy="50" r="${radius}"
+        fill="transparent"
+        stroke="${cat.color}"
+        stroke-width="14"
+        stroke-dasharray="${dashLength.toFixed(2)} ${circumference.toFixed(2)}"
+        stroke-dashoffset="${(-currentOffset).toFixed(2)}"
+        class="donut-segment"
+      >
+        <title>${cat.name}: ${formatRupiah(cat.amount)} (${Math.round(cat.pct)}%)</title>
+      </circle>
+    `;
+    currentOffset += dashLength;
+    return circle;
+  }).join('');
+
+  const listItems = sortedCategories.map(cat => `
+    <div class="category-row-item">
+      <div class="category-row-header">
+        <div class="cat-left">
+          <span class="cat-color-dot" style="background-color: ${cat.color};"></span>
+          <span class="cat-name">${cat.name}</span>
+        </div>
+        <div class="cat-right">
+          <span class="cat-amount">${formatRupiah(cat.amount)}</span>
+          <span class="cat-pct-label">${Math.round(cat.pct)}%</span>
+        </div>
+      </div>
+      <div class="cat-bar-bg">
+        <div class="cat-bar-fill" style="width: ${cat.pct}%; background-color: ${cat.color};"></div>
+      </div>
+    </div>
+  `).join('');
+
+  container.innerHTML = `
+    <div class="donut-and-list-grid">
+      <!-- SVG Donut Chart -->
+      <div class="donut-chart-box">
+        <svg viewBox="0 0 100 100" class="donut-svg">
+          <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="var(--border-soft)" stroke-width="14" />
+          ${svgCircles}
+        </svg>
+        <div class="donut-center-info">
+          <span class="donut-center-sub">Total Keluar</span>
+          <strong class="donut-center-val">${formatRupiah(totalExpense)}</strong>
+        </div>
+      </div>
+
+      <!-- Categories Ranked List -->
+      <div class="category-ranked-list">
+        ${listItems}
+      </div>
+    </div>
+  `;
+}
+
+function renderDashboardLearningProgress() {
+  const total = MODULES_DATA.length;
+  const completed = appState.completedModules.length;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  const progressText = document.getElementById('dashLearnProgressText');
+  const progressBar = document.getElementById('dashLearnProgressBar');
+
+  if (progressText) progressText.textContent = `${completed} / ${total} Modul Selesai (${pct}%)`;
+  if (progressBar) progressBar.style.width = `${pct}%`;
+
+  // Cari Modul Berikutnya yang Belum Selesai
+  let nextModIndex = 0;
+  for (let i = 0; i < total; i++) {
+    if (!appState.completedModules.includes(MODULES_DATA[i].id)) {
+      nextModIndex = i;
+      break;
+    }
+  }
+
+  const nextMod = MODULES_DATA[nextModIndex] || MODULES_DATA[0];
+  const tagEl = document.getElementById('dashNextModTag');
+  const titleEl = document.getElementById('dashNextModTitle');
+  const descEl = document.getElementById('dashNextModDesc');
+  const btnEl = document.getElementById('dashBtnContinueLearn');
+
+  if (tagEl && nextMod) tagEl.textContent = nextMod.tag;
+  if (titleEl && nextMod) titleEl.textContent = nextMod.title;
+  if (descEl && nextMod) {
+    if (completed === total) {
+      descEl.textContent = '🎉 Selamat! Anda telah menyelesaikan seluruh 12 modul literasi finansial. Anda dapat mengulas materi kapan saja.';
+    } else {
+      descEl.textContent = nextMod.fullTitle || nextMod.title;
+    }
+  }
+
+  if (btnEl) {
+    btnEl.onclick = (e) => {
+      e.preventDefault();
+      localStorage.setItem('finlearn_active_mod', nextModIndex);
+      window.location.href = 'materi.html';
+    };
+  }
+
+  // Quick Roadmap Chips
+  const roadmapContainer = document.getElementById('dashModQuickRoadmap');
+  if (roadmapContainer && MODULES_DATA.length > 0) {
+    roadmapContainer.innerHTML = MODULES_DATA.slice(0, 6).map((m, idx) => {
+      const isDone = appState.completedModules.includes(m.id);
+      return `
+        <div class="roadmap-chip ${isDone ? 'done' : ''}" onclick="jumpToModule(${idx})" title="${m.title}">
+          <span class="chip-num">${m.id}</span>
+          <span class="chip-name">${m.title}</span>
+          ${isDone ? '<span class="chip-check">✓</span>' : ''}
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+function jumpToModule(index) {
+  localStorage.setItem('finlearn_active_mod', index);
+  window.location.href = 'materi.html';
+}
+
+function renderDashboardRecentTx() {
+  const tbody = document.getElementById('dashTxTableBody');
+  const emptyState = document.getElementById('dashTableEmptyState');
+  if (!tbody) return;
+
+  const sorted = [...appState.transactions].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  const recent = sorted.slice(0, 5);
+
+  tbody.innerHTML = '';
+  if (recent.length === 0) {
+    if (emptyState) emptyState.style.display = 'flex';
+    return;
+  }
+
+  if (emptyState) emptyState.style.display = 'none';
+
+  recent.forEach(tx => {
+    const tr = document.createElement('tr');
+    const isIncome = tx.type === 'income';
+
+    tr.innerHTML = `
+      <td style="color: var(--text-secondary); white-space: nowrap;">${formatDisplayDate(tx.date)}</td>
+      <td><strong>${escapeHtml(tx.desc)}</strong></td>
+      <td style="color: var(--text-muted); font-size: 12px;">${tx.category}</td>
+      <td>
+        <span class="badge-tag ${isIncome ? 'badge-income' : 'badge-expense'}">
+          ${isIncome ? 'Pemasukan' : 'Pengeluaran'}
+        </span>
+      </td>
+      <td class="${isIncome ? 'amount-income' : 'amount-expense'}" style="white-space: nowrap; font-weight: 600;">
+        ${isIncome ? '+' : '−'} ${formatRupiah(tx.amount)}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderDashboardInsight(income, expense, topCategory, savingsRate) {
+  const insightBox = document.getElementById('dashInsightBox');
+  if (!insightBox) return;
+
+  if (appState.transactions.length === 0) {
+    insightBox.innerHTML = `
+      <div class="insight-item">
+        <div class="insight-icon">💡</div>
+        <div class="insight-text">
+          <strong>Langkah Awal: Fondasi Finansial</strong>
+          <p>Catat pemasukan dan pengeluaran harian Anda agar dapat melihat kesehatan arus kas. Seperti yang dipelajari pada <em>Modul 1 (Mengenal Dunia Finance)</em>, kesadaran ke mana uang mengalir adalah awal dari kebebasan finansial.</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let insightsHtml = '';
+
+  // Insight 1: Savings Rate / Formula 50-30-20
+  if (savingsRate >= 20) {
+    insightsHtml += `
+      <div class="insight-item">
+        <div class="insight-icon">🎯</div>
+        <div class="insight-text">
+          <strong>Rasio Tabungan Prima: ${savingsRate}%</strong>
+          <p>Luar biasa! Rasio tabungan Anda memenuhi pedoman <em>Modul 2 (Prinsip 50/30/20)</em> dengan porsi tabungan & masa depan di atas 20%. Pertahankan disiplin ini!</p>
+        </div>
+      </div>
+    `;
+  } else if (income > expense) {
+    insightsHtml += `
+      <div class="insight-item">
+        <div class="insight-icon">📈</div>
+        <div class="insight-text">
+          <strong>Tingkatkan Ruang Tabungan (${savingsRate}%)</strong>
+          <p>Arus kas Anda saat ini surplus, namun masih di bawah standar 20%. Cobalah prinsip <em>"Pay Yourself First"</em>: sisihkan dana tabungan di awal bulan sebelum dibelanjakan.</p>
+        </div>
+      </div>
+    `;
+  } else {
+    insightsHtml += `
+      <div class="insight-item warning">
+        <div class="insight-icon">⚠️</div>
+        <div class="insight-text">
+          <strong>Peringatan Defisit Kas</strong>
+          <p>Pengeluaran Anda saat ini melampaui pemasukan. Tinjau kembali pos pengeluaran sekunder dan waspadai "ember berlubang" dari pengeluaran kecil yang menumpuk.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  // Insight 2: Kategori Tertinggi
+  if (topCategory && topCategory !== '-') {
+    insightsHtml += `
+      <div class="insight-item">
+        <div class="insight-icon">📊</div>
+        <div class="insight-text">
+          <strong>Fokus Pos Terbesar: ${escapeHtml(topCategory)}</strong>
+          <p>Kategori pengeluaran terbesar Anda adalah <em>${escapeHtml(topCategory)}</em>. Memantau limit kategori ini adalah langkah paling berdampak untuk memperbesar saldo bersih.</p>
+        </div>
+      </div>
+    `;
+  }
+
+  insightBox.innerHTML = insightsHtml;
+}
+
+function handleLoadSampleData() {
+  const sampleTransactions = [
+    { id: 101, type: 'income', date: '2026-09-01', category: 'Gaji & Upah', desc: 'Gaji Bulanan Utama', amount: 8500000 },
+    { id: 102, type: 'income', date: '2026-09-12', category: 'Pendapatan Usaha', desc: 'Honor Desain & Proyek Freelance', amount: 2200000 },
+    { id: 103, type: 'expense', date: '2026-09-03', category: 'Tagihan & Utilitas', desc: 'Listrik PLN & WiFi Bulanan', amount: 650000 },
+    { id: 104, type: 'expense', date: '2026-09-05', category: 'Kebutuhan Rumah', desc: 'Belanja Pokok Bulanan Supermarket', amount: 1850000 },
+    { id: 105, type: 'expense', date: '2026-09-08', category: 'Makanan & Minuman', desc: 'Makan Siang & Kopi Mingguan', amount: 720000 },
+    { id: 106, type: 'expense', date: '2026-09-10', category: 'Transportasi', desc: 'Bensin & Saldo Kartu Tol/KRL', amount: 450000 },
+    { id: 107, type: 'expense', date: '2026-09-15', category: 'Investasi', desc: 'Investasi Reksadana & Tabungan Saham', amount: 1500000 },
+    { id: 108, type: 'expense', date: '2026-09-18', category: 'Hiburan & Hobi', desc: 'Langganan Streaming & Nonton Bioskop', amount: 280000 }
+  ];
+
+  appState.transactions = sampleTransactions;
+  localStorage.setItem('finlearn_transactions', JSON.stringify(sampleTransactions));
+
+  // Berikan sampel 2 modul yang sudah selesai dipelajari
+  if (appState.completedModules.length === 0) {
+    appState.completedModules = [1, 2];
+    localStorage.setItem('finlearn_completed_mods', JSON.stringify(appState.completedModules));
+  }
+
+  initDashboardPage();
+  showToastNotification('Data demo berhasil dimuat! Anda dapat melihat visualisasi dashboard.');
+}
+
 /* ===== 7. APPLICATION ENTRYPOINT ===== */
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   const pageType = document.body.dataset.page;
-  if (pageType === 'materi') {
+  if (pageType === 'dashboard') {
+    initDashboardPage();
+  } else if (pageType === 'materi') {
     initMateriPage();
   } else if (pageType === 'keuangan') {
     initKeuanganPage();
   }
 });
+
