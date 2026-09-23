@@ -1,56 +1,58 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinLearn — Course & Materi Laporan Keuangan</title>
+  <title>FinLearn — Financial Literacy & Accounting Course</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="materi">
 
   <!-- TOPBAR NAVBAR -->
   <header class="topbar">
-    <div class="topbar-left">
-      <a href="index.html" class="brand">
-        <span>FinLearn</span>
-        <span class="brand-badge">Akuntansi</span>
-      </a>
+    <div class="topbar-container">
+      <div class="topbar-left">
+        <a href="index.html" class="brand" title="FinLearn Home">
+          <img src="favicon.svg" alt="FinLearn Logo" class="brand-icon" />
+          <span class="brand-name">FinLearn</span>
+        </a>
 
-      <!-- NAVBAR DIRECT ACCESS -->
-      <nav class="navbar-nav">
-        <a href="index.html" class="nav-link" id="navDashboard">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
-          <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="keuangan.html" class="nav-link" id="navKeuangan">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <line x1="3" y1="9" x2="21" y2="9"/>
-            <line x1="9" y1="21" x2="9" y2="9"/>
-          </svg>
-          <span class="nav-text">Laporan Keuangan</span>
-        </a>
-        <a href="materi.html" class="nav-link active" id="navMateri">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          <span class="nav-text">Course Materi</span>
-        </a>
-      </nav>
-    </div>
+        <!-- NAVBAR DIRECT ACCESS -->
+        <nav class="navbar-nav">
+          <a href="index.html" class="nav-link" id="navDashboard">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+            <span class="nav-text">Dashboard</span>
+          </a>
+          <a href="keuangan.html" class="nav-link" id="navKeuangan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="21" x2="9" y2="9"/>
+            </svg>
+            <span class="nav-text">Finance Tracker</span>
+          </a>
+          <a href="materi.html" class="nav-link active" id="navMateri">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span class="nav-text">Course Modules</span>
+          </a>
+        </nav>
+      </div>
 
-    <div class="topbar-right">
-      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Ganti Tema">
-        <span id="themeIcon">☀️</span>
-      </button>
+      <div class="topbar-right">
+        <span class="topbar-tagline">Personal Finance Platform</span>
+      </div>
     </div>
   </header>
 
@@ -59,18 +61,18 @@
     <!-- LEFT SIDEBAR -->
     <aside class="materi-sidebar">
       <div class="sidebar-header">
-        <span class="sidebar-title">Daftar Modul</span>
-        <span class="module-counter" id="moduleCounter">7 Modul</span>
+        <span class="sidebar-title">Curriculum Modules</span>
+        <span class="module-counter" id="moduleCounter">12 Modules</span>
       </div>
 
       <nav class="sidebar-scrollable" id="moduleList">
-        <!-- Modul items rendered by JS -->
+        <!-- Module items rendered by JS -->
       </nav>
 
       <div class="sidebar-footer">
-        <!-- Tampilan Baca Font Control -->
+        <!-- Reading View Font Size Controls -->
         <div class="font-size-control">
-          <span class="control-label">Tampilan Baca</span>
+          <span class="control-label">Reading View</span>
           <div class="font-size-btn-group">
             <button class="font-size-btn" onclick="setFontSize('small')">A</button>
             <button class="font-size-btn active" onclick="setFontSize('standard')">A</button>
@@ -78,17 +80,17 @@
           </div>
         </div>
 
-        <!-- Progres Belajar -->
+        <!-- Learning Progress -->
         <div class="progress-widget">
           <div class="progress-header">
-            <span class="control-label">Progres Belajar</span>
+            <span class="control-label">Learning Progress</span>
             <span id="progressPercent">0%</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressBar" style="width: 0%"></div>
           </div>
           <div style="font-size: 11px; color: var(--text-muted); text-align: right;" id="progressSummary">
-            0 / 7 Modul
+            0 / 12 Completed
           </div>
         </div>
       </div>
@@ -97,14 +99,14 @@
     <!-- RIGHT MAIN CONTENT (FULL PAGE READER) -->
     <main class="materi-content-area" id="materiMain">
       <div class="course-breadcrumb">
-        <span>Katalog Kursus</span>
+        <span>Course Catalog</span>
         <span>/</span>
-        <span style="color: var(--text)">Dasar Laporan Keuangan</span>
+        <span style="color: var(--text)">Financial Literacy Curriculum</span>
       </div>
 
       <header class="module-header">
-        <span class="module-header-tag" id="currentModuleTag">MODUL 1</span>
-        <h1 class="module-header-title" id="currentModuleTitle">Pengenalan Laporan Keuangan</h1>
+        <span class="module-header-tag" id="currentModuleTag">MODULE 1</span>
+        <h1 class="module-header-title" id="currentModuleTitle">Introduction to Finance</h1>
       </header>
 
       <!-- ARTICLE READER -->
@@ -112,22 +114,45 @@
         <!-- Content will be injected here (parsed Markdown layout) -->
       </article>
 
+      <!-- MODULE COMPLETION ACTION CARD -->
+      <div class="module-completion-card" id="moduleCompletionCard">
+        <div class="completion-info">
+          <div class="completion-icon" id="completionStatusIcon">📖</div>
+          <div>
+            <h4 id="completionStatusTitle">Finished reading this module?</h4>
+            <p id="completionStatusSub">Click the button once you have understood the concepts to update your progress.</p>
+          </div>
+        </div>
+        <button class="btn-complete-module" id="btnToggleComplete" onclick="toggleCurrentModuleComplete()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span id="btnToggleCompleteText">Mark as Completed</span>
+        </button>
+      </div>
+
       <!-- NAVIGATION PREV / NEXT -->
       <nav class="module-navigation">
         <button class="btn-nav-step" id="btnPrevMod" onclick="changeModule(-1)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          Modul Sebelumnya
+          Previous Module
         </button>
         <button class="btn-nav-step" id="btnNextMod" onclick="changeModule(1)">
-          Modul Selanjutnya
+          Next Module
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </nav>
     </main>
   </div>
 
+  <!-- FLOATING THEME TOGGLE (BOTTOM-LEFT) -->
+  <button class="floating-theme-toggle" id="floatingThemeToggle" onclick="toggleTheme()" title="Switch Light/Dark Mode" aria-label="Toggle Theme">
+    <span class="theme-icon" id="themeIcon">☀️</span>
+    <span class="theme-label" id="themeLabel">Light</span>
+  </button>
+
   <!-- FLOATING SCROLL TOP -->
-  <button class="btn-floating-top" id="btnScrollTop" onclick="scrollToTop()" title="Kembali ke atas">
+  <button class="btn-floating-top" id="btnScrollTop" onclick="scrollToTop()" title="Back to top">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>
   </button>
 

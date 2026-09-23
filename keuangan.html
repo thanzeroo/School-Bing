@@ -1,82 +1,84 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinLearn — Pencatat Laporan Keuangan</title>
+  <title>FinLearn — Finance Tracker & Cashflow Book</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="apple-touch-icon" href="favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body data-page="keuangan">
 
   <!-- TOPBAR NAVBAR -->
   <header class="topbar">
-    <div class="topbar-left">
-      <a href="index.html" class="brand">
-        <span>FinLearn</span>
-        <span class="brand-badge">Pencatat</span>
-      </a>
+    <div class="topbar-container">
+      <div class="topbar-left">
+        <a href="index.html" class="brand" title="FinLearn Home">
+          <img src="favicon.svg" alt="FinLearn Logo" class="brand-icon" />
+          <span class="brand-name">FinLearn</span>
+        </a>
 
-      <!-- NAVBAR DIRECT ACCESS -->
-      <nav class="navbar-nav">
-        <a href="index.html" class="nav-link" id="navDashboard">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
-          <span class="nav-text">Dashboard</span>
-        </a>
-        <a href="keuangan.html" class="nav-link active" id="navKeuangan">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="18" height="18" rx="2"/>
-            <line x1="3" y1="9" x2="21" y2="9"/>
-            <line x1="9" y1="21" x2="9" y2="9"/>
-          </svg>
-          <span class="nav-text">Laporan Keuangan</span>
-        </a>
-        <a href="materi.html" class="nav-link" id="navMateri">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          <span class="nav-text">Course Materi</span>
-        </a>
-      </nav>
-    </div>
+        <!-- NAVBAR DIRECT ACCESS -->
+        <nav class="navbar-nav">
+          <a href="index.html" class="nav-link" id="navDashboard">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+            <span class="nav-text">Dashboard</span>
+          </a>
+          <a href="keuangan.html" class="nav-link active" id="navKeuangan">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="21" x2="9" y2="9"/>
+            </svg>
+            <span class="nav-text">Finance Tracker</span>
+          </a>
+          <a href="materi.html" class="nav-link" id="navMateri">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+            <span class="nav-text">Course Modules</span>
+          </a>
+        </nav>
+      </div>
 
-    <div class="topbar-right">
-      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Ganti Tema">
-        <span id="themeIcon">☀️</span>
-      </button>
+      <div class="topbar-right">
+        <span class="topbar-tagline">Personal Finance Platform</span>
+      </div>
     </div>
   </header>
 
-  <!-- KEUANGAN FULL PAGE CONTAINER -->
+  <!-- FINANCE CONTAINER -->
   <main class="keuangan-container">
 
     <!-- PAGE HEADER -->
     <header class="page-header-keuangan">
       <div class="page-header-title">
-        <h1>Buku Catatan Keuangan</h1>
-        <p>Catat arus masuk dan keluar, pantau saldo bersih, dan analisis pengeluaran.</p>
+        <h1>Financial Record Book</h1>
+        <p>Record inflows and outflows, monitor net balance, and analyze personal spending habits.</p>
       </div>
     </header>
 
     <!-- 3 STAT CARDS -->
     <section class="summary-cards-grid">
       <div class="stat-card balance">
-        <span class="stat-label">Saldo Bersih</span>
+        <span class="stat-label">Net Balance</span>
         <span class="stat-amount" id="statBalance">Rp 0</span>
       </div>
       <div class="stat-card income">
-        <span class="stat-label">Total Pemasukan</span>
+        <span class="stat-label">Total Income</span>
         <span class="stat-amount" id="statIncome">Rp 0</span>
       </div>
       <div class="stat-card expense">
-        <span class="stat-label">Total Pengeluaran</span>
+        <span class="stat-label">Total Expenses</span>
         <span class="stat-amount" id="statExpense">Rp 0</span>
       </div>
     </section>
@@ -85,55 +87,55 @@
     <section class="card-section">
       <h2 class="card-title">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        Tambah Transaksi Baru
+        Record New Transaction
       </h2>
 
       <div class="form-grid">
         <div class="form-row">
           <div class="form-field">
-            <label for="inputTxType">Jenis Transaksi</label>
+            <label for="inputTxType">Transaction Type</label>
             <select id="inputTxType">
-              <option value="income">Pemasukan (+)</option>
-              <option value="expense">Pengeluaran (-)</option>
+              <option value="income">Income (+)</option>
+              <option value="expense">Expense (−)</option>
             </select>
           </div>
 
           <div class="form-field">
-            <label for="inputTxDate">Tanggal</label>
+            <label for="inputTxDate">Date</label>
             <input type="date" id="inputTxDate" />
           </div>
 
           <div class="form-field">
-            <label for="inputTxCategory">Kategori</label>
+            <label for="inputTxCategory">Category</label>
             <select id="inputTxCategory">
-              <option value="Gaji & Upah">Gaji & Upah</option>
-              <option value="Pendapatan Usaha">Pendapatan Usaha</option>
-              <option value="Investasi">Investasi</option>
-              <option value="Makanan & Minuman">Makanan & Minuman</option>
-              <option value="Transportasi">Transportasi</option>
-              <option value="Tagihan & Utilitas">Tagihan & Utilitas</option>
-              <option value="Kebutuhan Rumah">Kebutuhan Rumah</option>
-              <option value="Hiburan & Hobi">Hiburan & Hobi</option>
-              <option value="Kesehatan">Kesehatan</option>
-              <option value="Lainnya">Lainnya</option>
+              <option value="Salary & Wages">Salary & Wages</option>
+              <option value="Business & Freelance">Business & Freelance</option>
+              <option value="Investments">Investments</option>
+              <option value="Food & Dining">Food & Dining</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Bills & Utilities">Bills & Utilities</option>
+              <option value="Housing & Supplies">Housing & Supplies</option>
+              <option value="Entertainment & Leisure">Entertainment & Leisure</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-field flex-2">
-            <label for="inputTxDesc">Keterangan / Deskripsi</label>
-            <input type="text" id="inputTxDesc" placeholder="Contoh: Honor Proyek Website, Belanja Bulanan..." />
+            <label for="inputTxDesc">Description / Memo</label>
+            <input type="text" id="inputTxDesc" placeholder="e.g., Monthly Project Honorarium, Groceries..." />
           </div>
 
           <div class="form-field flex-1-5">
-            <label for="inputTxAmount">Jumlah Nominal (Rp)</label>
+            <label for="inputTxAmount">Amount (Rp)</label>
             <input type="text" inputmode="numeric" id="inputTxAmount" placeholder="0" autocomplete="off" />
           </div>
 
           <button class="btn-primary" onclick="handleAddTransaction()">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Simpan Catatan
+            Save Transaction
           </button>
         </div>
       </div>
@@ -144,21 +146,21 @@
       <div class="table-header-bar">
         <h2 class="card-title">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          Riwayat Transaksi
+          Transaction History
         </h2>
 
         <div class="filter-actions">
           <select id="filterType" onchange="renderTransactionsList()">
-            <option value="all">Semua Jenis</option>
-            <option value="income">Hanya Pemasukan</option>
-            <option value="expense">Hanya Pengeluaran</option>
+            <option value="all">All Types</option>
+            <option value="income">Income Only</option>
+            <option value="expense">Expenses Only</option>
           </select>
 
           <input type="month" id="filterMonth" onchange="renderTransactionsList()" />
 
-          <button class="btn-outline" onclick="handleExportCSV()" title="Ekspor Data ke File CSV">
+          <button class="btn-outline" onclick="handleExportCSV()" title="Export Records to CSV File">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Ekspor CSV
+            Export CSV
           </button>
         </div>
       </div>
@@ -167,12 +169,12 @@
         <table class="data-table">
           <thead>
             <tr>
-              <th>Tanggal</th>
-              <th>Keterangan</th>
-              <th>Kategori</th>
-              <th>Jenis</th>
-              <th>Jumlah (Rp)</th>
-              <th style="width: 44px; text-align: center;">Aksi</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Amount (Rp)</th>
+              <th style="width: 44px; text-align: center;">Action</th>
             </tr>
           </thead>
           <tbody id="txTableBody">
@@ -182,12 +184,18 @@
 
         <div class="table-empty-state" id="tableEmptyState" style="display: none;">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-          <p>Belum ada catatan keuangan yang sesuai dengan filter.</p>
+          <p>No transactions match your current filter.</p>
         </div>
       </div>
     </section>
 
   </main>
+
+  <!-- FLOATING THEME TOGGLE (BOTTOM-LEFT) -->
+  <button class="floating-theme-toggle" id="floatingThemeToggle" onclick="toggleTheme()" title="Switch Light/Dark Mode" aria-label="Toggle Theme">
+    <span class="theme-icon" id="themeIcon">☀️</span>
+    <span class="theme-label" id="themeLabel">Light</span>
+  </button>
 
   <script src="app.js"></script>
 </body>

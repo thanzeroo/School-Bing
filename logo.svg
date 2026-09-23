@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="finGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="55%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="barGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Squircle -->
+  <rect width="64" height="64" rx="16" fill="url(#finGrad)"/>
+  
+  <!-- Financial Growth Bars -->
+  <rect x="15" y="34" width="7" height="17" rx="3.5" fill="url(#barGrad)"/>
+  <rect x="26" y="24" width="7" height="27" rx="3.5" fill="url(#barGrad)"/>
+  <rect x="37" y="15" width="7" height="36" rx="3.5" fill="url(#barGrad)"/>
+  
+  <!-- Upward Trend Arrow -->
+  <path d="M13 38 Q25 28 47 15" fill="none" stroke="#a7f3d0" stroke-width="3.2" stroke-linecap="round"/>
+  <polyline points="39,14.5 48,14.5 48,23.5" fill="none" stroke="#a7f3d0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

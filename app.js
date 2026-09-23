@@ -1,9 +1,9 @@
 /**
- * FinLearn - Belajar & Catat Keuangan
+ * FinLearn - Personal Finance & Accounting Learning Platform
  * Minimalist Pure JS DOM Logic
  */
 
-/* ===== 1. MATERI & KURIKULUM DATA SOURCE ===== */
+/* ===== 1. COURSE & CURRICULUM DATA SOURCE ===== */
 const MODULES_DATA = (typeof window !== 'undefined' && window.FINLEARN_MODULES) 
   ? window.FINLEARN_MODULES 
   : [];
@@ -17,17 +17,21 @@ const appState = {
   transactions: JSON.parse(localStorage.getItem('finlearn_transactions') || '[]')
 };
 
-// Pastikan index modul valid
+// Ensure active module index is valid
 if (appState.currentModuleIndex < 0 || (MODULES_DATA.length > 0 && appState.currentModuleIndex >= MODULES_DATA.length)) {
   appState.currentModuleIndex = 0;
 }
 
-// Inisialisasi Tema
+// Theme Initialization & Switcher
 function initTheme() {
   document.documentElement.setAttribute('data-theme', appState.theme);
   const icon = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
   if (icon) {
     icon.textContent = appState.theme === 'dark' ? '🌙' : '☀️';
+  }
+  if (label) {
+    label.textContent = appState.theme === 'dark' ? 'Dark' : 'Light';
   }
 }
 
@@ -161,7 +165,7 @@ function parseSimpleMarkdown(md) {
   return out.join('\n');
 }
 
-/* ===== 4. LOGIKA HALAMAN MATERI ===== */
+/* ===== 4. COURSE MODULES LOGIC ===== */
 function initMateriPage() {
   renderModuleListSidebar();
   loadModule(appState.currentModuleIndex);
@@ -178,10 +182,10 @@ function renderModuleListSidebar() {
   const completedCount = appState.completedModules.length;
 
   const counterEl = document.getElementById('moduleCounter');
-  if (counterEl) counterEl.textContent = `${total} Modul`;
+  if (counterEl) counterEl.textContent = `${total} Modules`;
 
   const summaryEl = document.getElementById('progressSummary');
-  if (summaryEl) summaryEl.textContent = `${completedCount} / ${total} Modul`;
+  if (summaryEl) summaryEl.textContent = `${completedCount} / ${total} Completed`;
 
   const pct = total > 0 ? Math.round((completedCount / total) * 100) : 0;
   const pctEl = document.getElementById('progressPercent');
@@ -210,7 +214,7 @@ function renderModuleListSidebar() {
         <div class="module-name">${mod.title}</div>
       </div>
       ${isDone ? `
-        <div class="module-badge-done" title="Selesai dibaca">
+        <div class="module-badge-done" title="Completed">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         </div>` : ''}
     `;
@@ -226,11 +230,8 @@ function loadModule(idx) {
 
   const mod = MODULES_DATA[idx];
 
-  // Tandai selesai jika belum
-  if (!appState.completedModules.includes(mod.id)) {
-    appState.completedModules.push(mod.id);
-    localStorage.setItem('finlearn_completed_mods', JSON.stringify(appState.completedModules));
-  }
+  // NOTE: Module is NOT auto-completed upon opening!
+  // User must explicitly click "Mark as Completed" to track true reading progress.
 
   // Update headers & content
   const tagEl = document.getElementById('currentModuleTag');
@@ -242,15 +243,84 @@ function loadModule(idx) {
   const articleEl = document.getElementById('articleBody');
   if (articleEl) articleEl.innerHTML = parseSimpleMarkdown(mod.content);
 
-  // Update tombol prev / next
+  // Update prev / next buttons
   const prevBtn = document.getElementById('btnPrevMod');
   if (prevBtn) prevBtn.disabled = idx === 0;
 
   const nextBtn = document.getElementById('btnNextMod');
   if (nextBtn) nextBtn.disabled = idx === MODULES_DATA.length - 1;
 
+  // Update Module Completion Card UI
+  updateModuleCompletionUI();
+
   renderModuleListSidebar();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateModuleCompletionUI() {
+  const mod = MODULES_DATA[appState.currentModuleIndex];
+  if (!mod) return;
+
+  const card = document.getElementById('moduleCompletionCard');
+  const btn = document.getElementById('btnToggleComplete');
+  const btnText = document.getElementById('btnToggleCompleteText');
+  const icon = document.getElementById('completionStatusIcon');
+  const title = document.getElementById('completionStatusTitle');
+  const sub = document.getElementById('completionStatusSub');
+
+  const isDone = appState.completedModules.includes(mod.id);
+
+  if (card) {
+    if (isDone) {
+      card.classList.add('completed');
+    } else {
+      card.classList.remove('completed');
+    }
+  }
+
+  if (btn) {
+    if (isDone) {
+      btn.classList.add('is-done');
+    } else {
+      btn.classList.remove('is-done');
+    }
+  }
+
+  if (btnText) {
+    btnText.textContent = isDone ? 'Mark as Incomplete' : 'Mark as Completed';
+  }
+
+  if (icon) {
+    icon.textContent = isDone ? '🎉' : '📖';
+  }
+
+  if (title) {
+    title.textContent = isDone ? 'Module Completed!' : 'Finished reading this module?';
+  }
+
+  if (sub) {
+    sub.textContent = isDone 
+      ? 'Great job! You have understood this topic. You can review it anytime.' 
+      : 'Click the button once you have understood the concepts to update your progress.';
+  }
+}
+
+function toggleCurrentModuleComplete() {
+  const mod = MODULES_DATA[appState.currentModuleIndex];
+  if (!mod) return;
+
+  const idx = appState.completedModules.indexOf(mod.id);
+  if (idx > -1) {
+    appState.completedModules.splice(idx, 1);
+    showToastNotification(`Module ${mod.id} marked as incomplete.`);
+  } else {
+    appState.completedModules.push(mod.id);
+    showToastNotification(`Module ${mod.id} marked as completed! 🎉`);
+  }
+
+  localStorage.setItem('finlearn_completed_mods', JSON.stringify(appState.completedModules));
+  updateModuleCompletionUI();
+  renderModuleListSidebar();
 }
 
 function changeModule(step) {
@@ -294,7 +364,7 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ===== 5. LOGIKA HALAMAN LAPORAN KEUANGAN ===== */
+/* ===== 5. FINANCE TRACKER LOGIC ===== */
 function initKeuanganPage() {
   setDefaultDateInput();
   initMonthFilter();
@@ -304,11 +374,9 @@ function initKeuanganPage() {
   const amountInput = document.getElementById('inputTxAmount');
   if (amountInput) {
     amountInput.addEventListener('input', (e) => {
-      // Hilangkan karakter selain angka
       const raw = e.target.value.replace(/\D/g, '');
       if (raw) {
-        // Tampilkan format ribuan dengan titik (contoh: 12.000, 1.500.000)
-        e.target.value = parseInt(raw, 10).toLocaleString('id-ID');
+        e.target.value = parseInt(raw, 10).toLocaleString('en-US');
       } else {
         e.target.value = '';
       }
@@ -340,20 +408,19 @@ function handleAddTransaction() {
   const desc = document.getElementById('inputTxDesc').value.trim();
   const rawAmount = document.getElementById('inputTxAmount').value.trim();
   
-  // Ambil hanya angka murni dari input (menghapus titik ribuan maupun spasi)
   const cleanDigits = rawAmount.replace(/\D/g, '');
   const amount = parseInt(cleanDigits, 10);
 
   if (!date) {
-    showToastNotification('Harap pilih tanggal transaksi.');
+    showToastNotification('Please select a transaction date.');
     return;
   }
   if (!desc) {
-    showToastNotification('Keterangan transaksi tidak boleh kosong.');
+    showToastNotification('Description cannot be empty.');
     return;
   }
   if (!amount || amount <= 0) {
-    showToastNotification('Jumlah nominal harus lebih dari 0.');
+    showToastNotification('Amount must be greater than 0.');
     return;
   }
 
@@ -376,7 +443,7 @@ function handleAddTransaction() {
 
   updateSummaryCards();
   renderTransactionsList();
-  showToastNotification('Catatan transaksi berhasil disimpan.');
+  showToastNotification('Transaction record saved successfully.');
 }
 
 function deleteTransactionItem(id) {
@@ -384,7 +451,7 @@ function deleteTransactionItem(id) {
   localStorage.setItem('finlearn_transactions', JSON.stringify(appState.transactions));
   updateSummaryCards();
   renderTransactionsList();
-  showToastNotification('Catatan transaksi telah dihapus.');
+  showToastNotification('Transaction removed.');
 }
 
 function updateSummaryCards() {
@@ -406,7 +473,7 @@ function updateSummaryCards() {
 
   statIncome.textContent = formatRupiah(totalIncome);
   statExpense.textContent = formatRupiah(totalExpense);
-  statBalance.textContent = formatRupiah(balance);
+  statBalance.textContent = (balance < 0 ? '− ' : '') + formatRupiah(balance);
 }
 
 function renderTransactionsList() {
@@ -426,7 +493,7 @@ function renderTransactionsList() {
     list = list.filter(t => t.date.startsWith(filterMonth));
   }
 
-  // Urutkan tanggal terbaru di atas
+  // Sort latest date first
   list.sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 
   tbody.innerHTML = '';
@@ -444,17 +511,17 @@ function renderTransactionsList() {
     tr.innerHTML = `
       <td style="color: var(--text-secondary); white-space: nowrap;">${formatDisplayDate(item.date)}</td>
       <td><strong>${escapeHtml(item.desc)}</strong></td>
-      <td style="color: var(--text-muted); font-size: 12px;">${item.category}</td>
+      <td style="color: var(--text-muted); font-size: 12px;">${escapeHtml(item.category)}</td>
       <td>
         <span class="badge-tag ${isIncome ? 'badge-income' : 'badge-expense'}">
-          ${isIncome ? 'Pemasukan' : 'Pengeluaran'}
+          ${isIncome ? 'Income' : 'Expense'}
         </span>
       </td>
-      <td class="${isIncome ? 'amount-income' : 'amount-expense'}" style="white-space: nowrap;">
+      <td class="${isIncome ? 'amount-income' : 'amount-expense'}" style="white-space: nowrap; font-weight: 600;">
         ${isIncome ? '+' : '−'} ${formatRupiah(item.amount)}
       </td>
       <td style="text-align: center;">
-        <button class="btn-delete-row" onclick="deleteTransactionItem(${item.id})" title="Hapus Catatan">
+        <button class="btn-delete-row" onclick="deleteTransactionItem(${item.id})" title="Delete Transaction">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -468,15 +535,15 @@ function renderTransactionsList() {
 
 function handleExportCSV() {
   if (appState.transactions.length === 0) {
-    showToastNotification('Tidak ada data transaksi untuk diekspor.');
+    showToastNotification('No transaction data to export.');
     return;
   }
 
-  const headers = ['ID', 'Tanggal', 'Jenis', 'Kategori', 'Keterangan', 'Jumlah_Rp'];
+  const headers = ['ID', 'Date', 'Type', 'Category', 'Description', 'Amount_Rp'];
   const rows = appState.transactions.map(t => [
     t.id,
     t.date,
-    t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+    t.type === 'income' ? 'Income' : 'Expense',
     `"${(t.category || '').replace(/"/g, '""')}"`,
     `"${(t.desc || '').replace(/"/g, '""')}"`,
     t.amount
@@ -487,16 +554,16 @@ function handleExportCSV() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `Laporan_Keuangan_FinLearn_${new Date().toISOString().split('T')[0]}.csv`;
+  link.download = `FinLearn_Transactions_${new Date().toISOString().split('T')[0]}.csv`;
   link.click();
   URL.revokeObjectURL(link);
 
-  showToastNotification('Laporan CSV berhasil diunduh.');
+  showToastNotification('CSV report downloaded successfully.');
 }
 
 /* ===== 6. UTILITY FUNCTIONS ===== */
 function formatRupiah(val) {
-  return 'Rp ' + Math.abs(val).toLocaleString('id-ID');
+  return 'Rp ' + Math.abs(val).toLocaleString('en-US');
 }
 
 function formatDisplayDate(dateString) {
@@ -504,11 +571,11 @@ function formatDisplayDate(dateString) {
   const parts = dateString.split('-');
   if (parts.length !== 3) return dateString;
   const d = new Date(parts[0], parts[1] - 1, parts[2]);
-  return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function escapeHtml(str) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function showToastNotification(msg) {
@@ -530,7 +597,7 @@ function showToastNotification(msg) {
   }, 2500);
 }
 
-/* ===== 6.5. LOGIKA HALAMAN DASHBOARD ===== */
+/* ===== 6.5. DASHBOARD CONTROLLER ===== */
 const CATEGORY_COLORS = [
   '#2563eb', // blue
   '#059669', // emerald
@@ -551,7 +618,6 @@ function initDashboardPage() {
   renderCategoryBreakdown(appState.transactions);
   renderDashboardLearningProgress();
   renderDashboardRecentTx();
-  renderDashboardInsight(metrics.income, metrics.expense, metrics.topCategory, metrics.savingsRate);
 }
 
 function updateDashboardGreetingAndDate() {
@@ -559,24 +625,24 @@ function updateDashboardGreetingAndDate() {
   const dateStrEl = document.getElementById('currentDateStr');
   const now = new Date();
 
-  // Waktu & Salam Dinamis
+  // Dynamic Greeting
   const hour = now.getHours();
-  let salam = 'Selamat Datang';
-  if (hour >= 4 && hour < 11) salam = 'Selamat Pagi 🌅';
-  else if (hour >= 11 && hour < 15) salam = 'Selamat Siang ☀️';
-  else if (hour >= 15 && hour < 18) salam = 'Selamat Sore 🌇';
-  else salam = 'Selamat Malam 🌙';
+  let greeting = 'Welcome';
+  if (hour >= 4 && hour < 12) greeting = 'Good morning 🌅';
+  else if (hour >= 12 && hour < 17) greeting = 'Good afternoon ☀️';
+  else if (hour >= 17 && hour < 22) greeting = 'Good evening 🌇';
+  else greeting = 'Good night 🌙';
 
   if (greetingEl) {
-    greetingEl.textContent = `${salam}, di FinLearn`;
+    greetingEl.textContent = `${greeting}, to FinLearn`;
   }
 
-  // Format Tanggal Indonesia
+  // English Date Format
   if (dateStrEl) {
-    const formattedDate = now.toLocaleDateString('id-ID', {
+    const formattedDate = now.toLocaleDateString('en-US', {
       weekday: 'long',
-      day: 'numeric',
       month: 'long',
+      day: 'numeric',
       year: 'numeric'
     });
     dateStrEl.textContent = formattedDate;
@@ -598,7 +664,7 @@ function updateDashboardStats() {
   const incomeTxCount = appState.transactions.filter(t => t.type === 'income').length;
   const expenseTxCount = appState.transactions.filter(t => t.type === 'expense').length;
 
-  // Elemen Nilai
+  // Stat elements
   const balEl = document.getElementById('dashStatBalance');
   const incEl = document.getElementById('dashStatIncome');
   const expEl = document.getElementById('dashStatExpense');
@@ -609,25 +675,25 @@ function updateDashboardStats() {
   if (expEl) expEl.textContent = formatRupiah(expense);
   if (savEl) savEl.textContent = (savingsRate < 0 ? '0%' : `${savingsRate}%`);
 
-  // Subteks
+  // Subtext
   const balSub = document.getElementById('dashStatBalanceSub');
   const incSub = document.getElementById('dashStatIncomeCount');
   const expSub = document.getElementById('dashStatExpenseCount');
   const savSub = document.getElementById('dashStatSavingsSub');
 
-  if (incSub) incSub.textContent = `${incomeTxCount} transaksi pemasukan`;
-  if (expSub) expSub.textContent = `${expenseTxCount} transaksi pengeluaran`;
+  if (incSub) incSub.textContent = `${incomeTxCount} income transaction${incomeTxCount === 1 ? '' : 's'}`;
+  if (expSub) expSub.textContent = `${expenseTxCount} expense transaction${expenseTxCount === 1 ? '' : 's'}`;
 
   if (balSub) {
-    if (balance > 0) balSub.textContent = 'Arus kas positif & surplus';
-    else if (balance < 0) balSub.textContent = 'Defisit, pengeluaran melebihi pemasukan';
-    else balSub.textContent = 'Saldo seimbang / belum ada transaksi';
+    if (balance > 0) balSub.textContent = 'Positive surplus cashflow';
+    else if (balance < 0) balSub.textContent = 'Deficit, spending exceeds income';
+    else balSub.textContent = 'Balanced cashflow / no activity';
   }
 
   if (savSub) {
-    if (savingsRate >= 20) savSub.textContent = '✅ Melebihi target 50/30/20 (min. 20%)';
-    else if (savingsRate > 0) savSub.textContent = '⚠️ Belum capai target ideal 20%';
-    else savSub.textContent = 'Target ideal: min. 20% dari income';
+    if (savingsRate >= 20) savSub.textContent = '✅ Exceeds 50/30/20 target (min. 20%)';
+    else if (savingsRate > 0) savSub.textContent = '⚠️ Below recommended 20% target';
+    else savSub.textContent = 'Target: min. 20% of net income';
   }
 
   // Health Status Chip
@@ -637,20 +703,20 @@ function updateDashboardStats() {
     healthChip.classList.remove('status-good', 'status-warning', 'status-danger');
     if (appState.transactions.length === 0) {
       healthChip.classList.add('status-warning');
-      healthChipText.textContent = 'Data Baru Dimulai';
+      healthChipText.textContent = 'New Account';
     } else if (balance < 0) {
       healthChip.classList.add('status-danger');
-      healthChipText.textContent = 'Defisit Finansial';
+      healthChipText.textContent = 'Cashflow Deficit';
     } else if (savingsRate >= 20) {
       healthChip.classList.add('status-good');
-      healthChipText.textContent = 'Keuangan Sangat Sehat';
+      healthChipText.textContent = 'Very Healthy';
     } else {
       healthChip.classList.add('status-warning');
-      healthChipText.textContent = 'Keuangan Stabil';
+      healthChipText.textContent = 'Stable Cashflow';
     }
   }
 
-  // Cari Top Kategori Pengeluaran
+  // Top spending category
   const expenseMap = {};
   appState.transactions.filter(t => t.type === 'expense').forEach(t => {
     expenseMap[t.category] = (expenseMap[t.category] || 0) + t.amount;
@@ -678,10 +744,10 @@ function renderCashflowChart(income, expense) {
       statusBadge.textContent = 'Net Surplus';
       statusBadge.className = 'badge-pill pill-success';
     } else if (expense > income) {
-      statusBadge.textContent = 'Net Defisit';
+      statusBadge.textContent = 'Net Deficit';
       statusBadge.className = 'badge-pill pill-danger';
     } else {
-      statusBadge.textContent = 'Net Netral';
+      statusBadge.textContent = 'Neutral';
       statusBadge.className = 'badge-pill';
     }
   }
@@ -689,8 +755,8 @@ function renderCashflowChart(income, expense) {
   if (total === 0) {
     container.innerHTML = `
       <div class="chart-empty-state">
-        <p>Belum ada data pemasukan & pengeluaran untuk ditampilkan.</p>
-        <button class="btn-outline-sm" onclick="handleLoadSampleData()">Muat Data Demo</button>
+        <p>No income & expense records found yet.</p>
+        <button class="btn-outline-sm" onclick="handleLoadSampleData()">Load Demo Data</button>
       </div>
     `;
     return;
@@ -704,8 +770,8 @@ function renderCashflowChart(income, expense) {
     <div class="cashflow-visual-wrapper">
       <!-- Comparative Progress Bar -->
       <div class="cashflow-bar-track">
-        <div class="cashflow-bar-income" style="width: ${incomePct}%;" title="Pemasukan: ${incomePct}%"></div>
-        <div class="cashflow-bar-expense" style="width: ${expensePct}%;" title="Pengeluaran: ${expensePct}%"></div>
+        <div class="cashflow-bar-income" style="width: ${incomePct}%;" title="Income: ${incomePct}%"></div>
+        <div class="cashflow-bar-expense" style="width: ${expensePct}%;" title="Expenses: ${expensePct}%"></div>
       </div>
 
       <!-- Detail Box Grid -->
@@ -713,32 +779,32 @@ function renderCashflowChart(income, expense) {
         <div class="cashflow-col inc">
           <div class="cf-badge-row">
             <span class="cf-indicator inc"></span>
-            <span class="cf-label">Pemasukan</span>
+            <span class="cf-label">Total Income</span>
           </div>
           <div class="cf-val inc">${formatRupiah(income)}</div>
-          <div class="cf-pct">${incomePct}% dari total aktivitas</div>
+          <div class="cf-pct">${incomePct}% of total flow</div>
         </div>
 
         <div class="cashflow-col exp">
           <div class="cf-badge-row">
             <span class="cf-indicator exp"></span>
-            <span class="cf-label">Pengeluaran</span>
+            <span class="cf-label">Total Expenses</span>
           </div>
           <div class="cf-val exp">${formatRupiah(expense)}</div>
-          <div class="cf-pct">${expensePct}% dari total aktivitas</div>
+          <div class="cf-pct">${expensePct}% of total flow</div>
         </div>
       </div>
 
       <!-- Net Result Callout -->
       <div class="cashflow-net-card ${netAmount >= 0 ? 'net-positive' : 'net-negative'}">
         <div class="net-left">
-          <span class="net-title">Selisih Kas Bersih:</span>
+          <span class="net-title">Net Difference:</span>
           <strong>${netAmount >= 0 ? '+' : '−'} ${formatRupiah(netAmount)}</strong>
         </div>
         <div class="net-right">
           ${netAmount >= 0 
-            ? '<span>🛡️ Arus kas surplus dan aman untuk ditabung.</span>' 
-            : '<span>⚠️ Pengeluaran melebihi pemasukan bulan ini.</span>'}
+            ? '<span>🛡️ Positive cashflow safely secured for savings and investments.</span>' 
+            : '<span>⚠️ Expenses exceed income in this recording period.</span>'}
         </div>
       </div>
     </div>
@@ -752,11 +818,11 @@ function renderCategoryBreakdown(transactions) {
 
   const expenses = transactions.filter(t => t.type === 'expense');
   if (expenses.length === 0) {
-    if (topBadge) topBadge.textContent = 'Belum Ada';
+    if (topBadge) topBadge.textContent = 'None';
     container.innerHTML = `
       <div class="chart-empty-state">
-        <p>Belum ada pengeluaran yang dicatat.</p>
-        <a href="keuangan.html" class="btn-outline-sm">+ Catat Pengeluaran</a>
+        <p>No expense transactions recorded yet.</p>
+        <a href="keuangan.html" class="btn-outline-sm">+ Record Expense</a>
       </div>
     `;
     return;
@@ -780,10 +846,9 @@ function renderCategoryBreakdown(transactions) {
     .sort((a, b) => b.amount - a.amount);
 
   if (topBadge && sortedCategories.length > 0) {
-    topBadge.textContent = `Tertinggi: ${sortedCategories[0].name} (${Math.round(sortedCategories[0].pct)}%)`;
+    topBadge.textContent = `Top: ${sortedCategories[0].name} (${Math.round(sortedCategories[0].pct)}%)`;
   }
 
-  // Hitung Donut Segments SVG
   const radius = 38;
   const circumference = 2 * Math.PI * radius; // ~238.76
   let currentOffset = 0;
@@ -812,7 +877,7 @@ function renderCategoryBreakdown(transactions) {
       <div class="category-row-header">
         <div class="cat-left">
           <span class="cat-color-dot" style="background-color: ${cat.color};"></span>
-          <span class="cat-name">${cat.name}</span>
+          <span class="cat-name">${escapeHtml(cat.name)}</span>
         </div>
         <div class="cat-right">
           <span class="cat-amount">${formatRupiah(cat.amount)}</span>
@@ -834,7 +899,7 @@ function renderCategoryBreakdown(transactions) {
           ${svgCircles}
         </svg>
         <div class="donut-center-info">
-          <span class="donut-center-sub">Total Keluar</span>
+          <span class="donut-center-sub">Total Spent</span>
           <strong class="donut-center-val">${formatRupiah(totalExpense)}</strong>
         </div>
       </div>
@@ -855,10 +920,10 @@ function renderDashboardLearningProgress() {
   const progressText = document.getElementById('dashLearnProgressText');
   const progressBar = document.getElementById('dashLearnProgressBar');
 
-  if (progressText) progressText.textContent = `${completed} / ${total} Modul Selesai (${pct}%)`;
+  if (progressText) progressText.textContent = `${completed} / ${total} Modules Completed (${pct}%)`;
   if (progressBar) progressBar.style.width = `${pct}%`;
 
-  // Cari Modul Berikutnya yang Belum Selesai
+  // Find next uncompleted module
   let nextModIndex = 0;
   for (let i = 0; i < total; i++) {
     if (!appState.completedModules.includes(MODULES_DATA[i].id)) {
@@ -877,7 +942,7 @@ function renderDashboardLearningProgress() {
   if (titleEl && nextMod) titleEl.textContent = nextMod.title;
   if (descEl && nextMod) {
     if (completed === total) {
-      descEl.textContent = '🎉 Selamat! Anda telah menyelesaikan seluruh 12 modul literasi finansial. Anda dapat mengulas materi kapan saja.';
+      descEl.textContent = '🎉 Congratulations! You have completed all 12 modules of financial literacy. You can review them anytime.';
     } else {
       descEl.textContent = nextMod.fullTitle || nextMod.title;
     }
@@ -897,9 +962,9 @@ function renderDashboardLearningProgress() {
     roadmapContainer.innerHTML = MODULES_DATA.slice(0, 6).map((m, idx) => {
       const isDone = appState.completedModules.includes(m.id);
       return `
-        <div class="roadmap-chip ${isDone ? 'done' : ''}" onclick="jumpToModule(${idx})" title="${m.title}">
+        <div class="roadmap-chip ${isDone ? 'done' : ''}" onclick="jumpToModule(${idx})" title="${escapeHtml(m.title)}">
           <span class="chip-num">${m.id}</span>
-          <span class="chip-name">${m.title}</span>
+          <span class="chip-name">${escapeHtml(m.title)}</span>
           ${isDone ? '<span class="chip-check">✓</span>' : ''}
         </div>
       `;
@@ -935,10 +1000,10 @@ function renderDashboardRecentTx() {
     tr.innerHTML = `
       <td style="color: var(--text-secondary); white-space: nowrap;">${formatDisplayDate(tx.date)}</td>
       <td><strong>${escapeHtml(tx.desc)}</strong></td>
-      <td style="color: var(--text-muted); font-size: 12px;">${tx.category}</td>
+      <td style="color: var(--text-muted); font-size: 12px;">${escapeHtml(tx.category)}</td>
       <td>
         <span class="badge-tag ${isIncome ? 'badge-income' : 'badge-expense'}">
-          ${isIncome ? 'Pemasukan' : 'Pengeluaran'}
+          ${isIncome ? 'Income' : 'Expense'}
         </span>
       </td>
       <td class="${isIncome ? 'amount-income' : 'amount-expense'}" style="white-space: nowrap; font-weight: 600;">
@@ -949,97 +1014,38 @@ function renderDashboardRecentTx() {
   });
 }
 
-function renderDashboardInsight(income, expense, topCategory, savingsRate) {
-  const insightBox = document.getElementById('dashInsightBox');
-  if (!insightBox) return;
-
-  if (appState.transactions.length === 0) {
-    insightBox.innerHTML = `
-      <div class="insight-item">
-        <div class="insight-icon">💡</div>
-        <div class="insight-text">
-          <strong>Langkah Awal: Fondasi Finansial</strong>
-          <p>Catat pemasukan dan pengeluaran harian Anda agar dapat melihat kesehatan arus kas. Seperti yang dipelajari pada <em>Modul 1 (Mengenal Dunia Finance)</em>, kesadaran ke mana uang mengalir adalah awal dari kebebasan finansial.</p>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  let insightsHtml = '';
-
-  // Insight 1: Savings Rate / Formula 50-30-20
-  if (savingsRate >= 20) {
-    insightsHtml += `
-      <div class="insight-item">
-        <div class="insight-icon">🎯</div>
-        <div class="insight-text">
-          <strong>Rasio Tabungan Prima: ${savingsRate}%</strong>
-          <p>Luar biasa! Rasio tabungan Anda memenuhi pedoman <em>Modul 2 (Prinsip 50/30/20)</em> dengan porsi tabungan & masa depan di atas 20%. Pertahankan disiplin ini!</p>
-        </div>
-      </div>
-    `;
-  } else if (income > expense) {
-    insightsHtml += `
-      <div class="insight-item">
-        <div class="insight-icon">📈</div>
-        <div class="insight-text">
-          <strong>Tingkatkan Ruang Tabungan (${savingsRate}%)</strong>
-          <p>Arus kas Anda saat ini surplus, namun masih di bawah standar 20%. Cobalah prinsip <em>"Pay Yourself First"</em>: sisihkan dana tabungan di awal bulan sebelum dibelanjakan.</p>
-        </div>
-      </div>
-    `;
-  } else {
-    insightsHtml += `
-      <div class="insight-item warning">
-        <div class="insight-icon">⚠️</div>
-        <div class="insight-text">
-          <strong>Peringatan Defisit Kas</strong>
-          <p>Pengeluaran Anda saat ini melampaui pemasukan. Tinjau kembali pos pengeluaran sekunder dan waspadai "ember berlubang" dari pengeluaran kecil yang menumpuk.</p>
-        </div>
-      </div>
-    `;
-  }
-
-  // Insight 2: Kategori Tertinggi
-  if (topCategory && topCategory !== '-') {
-    insightsHtml += `
-      <div class="insight-item">
-        <div class="insight-icon">📊</div>
-        <div class="insight-text">
-          <strong>Fokus Pos Terbesar: ${escapeHtml(topCategory)}</strong>
-          <p>Kategori pengeluaran terbesar Anda adalah <em>${escapeHtml(topCategory)}</em>. Memantau limit kategori ini adalah langkah paling berdampak untuk memperbesar saldo bersih.</p>
-        </div>
-      </div>
-    `;
-  }
-
-  insightBox.innerHTML = insightsHtml;
+function handleResetData() {
+  appState.transactions = [];
+  appState.completedModules = [];
+  localStorage.removeItem('finlearn_transactions');
+  localStorage.removeItem('finlearn_completed_mods');
+  initDashboardPage();
+  showToastNotification('All demo and transaction data has been reset.');
 }
 
 function handleLoadSampleData() {
   const sampleTransactions = [
-    { id: 101, type: 'income', date: '2026-09-01', category: 'Gaji & Upah', desc: 'Gaji Bulanan Utama', amount: 8500000 },
-    { id: 102, type: 'income', date: '2026-09-12', category: 'Pendapatan Usaha', desc: 'Honor Desain & Proyek Freelance', amount: 2200000 },
-    { id: 103, type: 'expense', date: '2026-09-03', category: 'Tagihan & Utilitas', desc: 'Listrik PLN & WiFi Bulanan', amount: 650000 },
-    { id: 104, type: 'expense', date: '2026-09-05', category: 'Kebutuhan Rumah', desc: 'Belanja Pokok Bulanan Supermarket', amount: 1850000 },
-    { id: 105, type: 'expense', date: '2026-09-08', category: 'Makanan & Minuman', desc: 'Makan Siang & Kopi Mingguan', amount: 720000 },
-    { id: 106, type: 'expense', date: '2026-09-10', category: 'Transportasi', desc: 'Bensin & Saldo Kartu Tol/KRL', amount: 450000 },
-    { id: 107, type: 'expense', date: '2026-09-15', category: 'Investasi', desc: 'Investasi Reksadana & Tabungan Saham', amount: 1500000 },
-    { id: 108, type: 'expense', date: '2026-09-18', category: 'Hiburan & Hobi', desc: 'Langganan Streaming & Nonton Bioskop', amount: 280000 }
+    { id: 101, type: 'income', date: '2026-09-01', category: 'Salary & Wages', desc: 'Primary Monthly Salary', amount: 8500000 },
+    { id: 102, type: 'income', date: '2026-09-12', category: 'Business & Freelance', desc: 'Freelance Design & Development Project', amount: 2200000 },
+    { id: 103, type: 'expense', date: '2026-09-03', category: 'Bills & Utilities', desc: 'Electricity & High-Speed Internet', amount: 650000 },
+    { id: 104, type: 'expense', date: '2026-09-05', category: 'Housing & Supplies', desc: 'Monthly Grocery & Household Supplies', amount: 1850000 },
+    { id: 105, type: 'expense', date: '2026-09-08', category: 'Food & Dining', desc: 'Lunch & Weekly Dining Out', amount: 720000 },
+    { id: 106, type: 'expense', date: '2026-09-10', category: 'Transportation', desc: 'Fuel & Public Transit Card Reload', amount: 450000 },
+    { id: 107, type: 'expense', date: '2026-09-15', category: 'Investasi', desc: 'Mutual Funds & Stock Portfolio', amount: 1500000 },
+    { id: 108, type: 'expense', date: '2026-09-18', category: 'Entertainment & Leisure', desc: 'Streaming Subscriptions & Movies', amount: 280000 }
   ];
 
   appState.transactions = sampleTransactions;
   localStorage.setItem('finlearn_transactions', JSON.stringify(sampleTransactions));
 
-  // Berikan sampel 2 modul yang sudah selesai dipelajari
+  // Pre-complete 2 sample modules if empty
   if (appState.completedModules.length === 0) {
     appState.completedModules = [1, 2];
     localStorage.setItem('finlearn_completed_mods', JSON.stringify(appState.completedModules));
   }
 
   initDashboardPage();
-  showToastNotification('Data demo berhasil dimuat! Anda dapat melihat visualisasi dashboard.');
+  showToastNotification('Demo data loaded successfully! You can explore the visual dashboard.');
 }
 
 /* ===== 7. APPLICATION ENTRYPOINT ===== */
@@ -1054,4 +1060,3 @@ document.addEventListener('DOMContentLoaded', () => {
     initKeuanganPage();
   }
 });
-
